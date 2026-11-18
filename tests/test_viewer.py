@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import subprocess
+import struct
 import sys
 import tempfile
 import unittest
@@ -16,6 +17,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ImportTest(unittest.TestCase):
+    def test_stl_encodings_preserve_triangles_and_bounds(self):
+        ascii_stl = (b'solid sample\nfacet normal 0 0 1\nouter loop\n'
+                     b'vertex -1 2 3\nvertex 5 2 3\nvertex -1 6 3\n'
+                     b'endloop\nendfacet\nendsolid sample\n')
+        binary_stl = struct.pack('<80sI12fH', b'solid binary header', 1,
+                                 0,0,1, -1,2,3, 5,2,3, -1,6,3, 0)
+        with tempfile.TemporaryDirectory() as directory:
+            for extension, data in [('stl', ascii_stl), ('STL', binary_stl)]:
+                with self.subTest(extension=extension):
+                    model = Path(directory) / ('测试 part.' + extension)
+                    model.write_bytes(data)
+                    mesh = model.with_suffix('.mesh')
+                    subprocess.run([sys.executable, ROOT/'import_file.py', model, mesh],
+                                   check=True, timeout=45)
+                    part, = read_scene(mesh)
+                    self.assertEqual((part.name, part.triangle_count), (model.stem, 1))
+                    self.assertEqual(part.actor.GetBounds(), (-1, 5, 2, 6, 3, 3))
+
     def test_step_round_trip_preserves_bounds(self):
         with tempfile.TemporaryDirectory() as directory:
             model = Path(directory) / 'sample box.stp'

@@ -12,7 +12,8 @@ from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / 'assets'
-APP = 'STEP 模型查看器'
+APP = 'STEP / STL 模型查看器'
+MODEL_SUFFIXES = {'.step', '.stp', '.stl'}
 VIEWS = {'等轴测': ((1, 1.45, .95), (0, 0, 1)), '正视': ((0, -1, 0), (0, 0, 1)),
          '俯视': ((0, 0, 1), (0, 1, 0)), '右视': ((1, 0, 0), (0, 0, 1))}
 
@@ -63,13 +64,14 @@ class Viewer(W.QMainWindow):
 
     def browse(self):
         path, _ = W.QFileDialog.getOpenFileName(self, '打开模型', self.settings.value('directory', str(Path.home())),
-            'STEP 模型 (*.[sS][tT][eE][pP] *.[sS][tT][pP]);;所有文件 (*)')
+            '三维模型 (*.[sS][tT][eE][pP] *.[sS][tT][pP] *.[sS][tT][lL]);;'
+            'STL 网格 (*.[sS][tT][lL]);;STEP 模型 (*.[sS][tT][eE][pP] *.[sS][tT][pP]);;所有文件 (*)')
         if path: self.open_file(Path(path))
 
     def open_file(self, path):
         path = Path(path).absolute()
-        if path.suffix.lower() not in ('.step', '.stp') or not path.is_file():
-            self.statusBar().showMessage('无法打开：请选择存在的 STEP 或 STP 文件'); return
+        if path.suffix.lower() not in MODEL_SUFFIXES or not path.is_file():
+            self.statusBar().showMessage('无法打开：请选择存在的 STEP、STP 或 STL 文件'); return
         self.cancel(); self.tmp = tempfile.TemporaryDirectory(prefix='step-viewer-')
         mesh = Path(self.tmp.name) / 'display.mesh'; p = C.QProcess(self); self.proc = p
         self.cancel_action.setVisible(True); self.statusBar().showMessage('正在读取：' + path.name)
@@ -142,7 +144,7 @@ class Viewer(W.QMainWindow):
 
     def dragged_file(self, event):
         for url in event.mimeData().urls():
-            if url.isLocalFile() and Path(url.toLocalFile()).suffix.lower() in ('.step', '.stp'): return Path(url.toLocalFile())
+            if url.isLocalFile() and Path(url.toLocalFile()).suffix.lower() in MODEL_SUFFIXES: return Path(url.toLocalFile())
 
     def dragEnterEvent(self, event):
         if self.dragged_file(event): event.acceptProposedAction()

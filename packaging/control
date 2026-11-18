@@ -1,10 +1,10 @@
 Package: local-step-viewer
-Version: 1.1.0
+Version: 1.2.0
 Architecture: all
 Section: graphics
 Priority: optional
 Maintainer: STEP Viewer <step-viewer@localhost>
 Depends: python3, python3-pyqt5, python3-vtk9, python3-numpy, libqt5svg5, freecad-python3, shared-mime-info
-Description: Native desktop viewer for STEP and STP models
+Description: Native desktop viewer for STEP, STP and STL models
  Displays local CAD files using Qt, VTK and FreeCAD, with a bundled
  F330 assembly preview and per-component visibility controls.

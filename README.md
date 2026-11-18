@@ -1,4 +1,4 @@
-# STEP 模型查看器 · 二次开发
+# STEP / STL 模型查看器 · 二次开发
 
 本地桌面程序，使用 Python、PyQt5、VTK 和 FreeCAD。已验证环境是 Ubuntu 22.04 桌面。源码可以放在任意目录运行，无需先安装查看器的 `.deb`。
 
@@ -16,10 +16,13 @@ sudo apt install make dpkg python3 python3-pyqt5 python3-vtk9 python3-numpy libq
 ```sh
 make run                         # 打开内置的 F330 示例
 make run FILE="/路径/模型.stp"   # 或者启动时打开自己的文件
+make run FILE="/路径/支架.stl"   # 支持二进制和 ASCII STL
 make test                        # 自动检查，无需图形桌面
 ```
 
 改完 `.py` 文件并保存后，关闭开发窗口，再执行 `make run`。运行开发版无需 `sudo`。应用菜单里用 `.deb` 安装的版本不会随源码修改；用 `make run` 可以确定正在运行手头的源码。
+
+也可点击「打开模型」或把文件拖进窗口。STL 按一个网格部件显示，保留文件坐标，不做单位换算；可以旋转、缩放、切换视角和线框。
 
 用 VS Code 调试：直接打开本项目文件夹，安装 Python 和 Python Debugger 扩展，按 F5 选择「调试 STEP 查看器」。在 PyCharm 中把项目解释器设置成 `/usr/bin/python3`，启动脚本选择 `viewer.py`。STEP 导入发生在独立进程；单独调试导入时，运行 `import_file.py 输入.step 输出.mesh`。
 
