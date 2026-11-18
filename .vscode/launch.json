@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "调试 STEP 查看器",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "/usr/bin/python3",
+      "program": "${workspaceFolder}/viewer.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}

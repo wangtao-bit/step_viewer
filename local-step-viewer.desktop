@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=STEP 模型查看器
+GenericName=STEP Viewer
+Comment=在本机查看三维零件和装配体
+Exec=local-step-viewer %f
+Icon=local-step-viewer
+Terminal=false
+Categories=Graphics;3DGraphics;Engineering;
+Keywords=CAD;STEP;STP;三维;模型;
+MimeType=model/step;
