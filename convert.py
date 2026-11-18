@@ -1,7 +1,17 @@
-import json, sys, struct, pathlib, resource, re
+import json, sys, struct, pathlib, resource
 resource.setrlimit(resource.RLIMIT_CORE,(0,0))
-sys.path.append('/usr/lib/freecad/lib')
-import FreeCAD as F, Part, MeshPart, numpy as np
+import numpy as np
+
+try:
+    sys.path.append('/usr/lib/freecad/lib')
+    import FreeCAD as F, Part, MeshPart
+except ModuleNotFoundError:
+    F = Part = MeshPart = None
+
+try:
+    import cadquery as cq
+except ModuleNotFoundError:
+    cq = None
 
 def stl_geometry(source):
     from vtkmodules.vtkIOGeometry import vtkSTLReader
@@ -19,18 +29,35 @@ def step_geometry(shape):
     vertices, triangles = mesh.Topology
     return [(p.x,p.y,p.z) for p in vertices], triangles
 
+
+def cadquery_step_geometry(shape):
+    vertices, triangles = shape.tessellate(.16, .46)
+    return [(p.x, p.y, p.z) for p in vertices], triangles
+
+
+def read_step(source, demo=False):
+    if F is not None and Part is not None and MeshPart is not None:
+        if demo:
+            doc = F.openDocument(str(source.resolve()))
+            return [(o.Label, o.Shape) for o in doc.Objects if hasattr(o, 'Shape')], step_geometry
+        shape = Part.read(str(source))
+        pieces = shape.childShapes() if shape.ShapeType in ('Compound', 'CompSolid') else [shape]
+        return [(f'零件 {i+1:02d}', piece) for i, piece in enumerate(pieces)], step_geometry
+
+    if demo:
+        raise RuntimeError('演示 FCStd 文件需要安装 FreeCAD Python 模块')
+    if cq is None:
+        raise RuntimeError('STEP 导入需要 FreeCAD 或 cadquery/OCP，请先安装其中一个')
+    workplane = cq.importers.importStep(str(source))
+    return [(f'零件 {i+1:02d}', shape) for i, shape in enumerate(workplane.objects)], cadquery_step_geometry
+
 def convert(source,output,demo=False):
     if source.suffix.lower() == '.stl':
         # STL already contains triangles; keep its coordinates and topology.
         meshes = [(source.stem, stl_geometry(source))]
     else:
-        if demo:
-            doc=F.openDocument(str(source.resolve()))
-            items=[(o.Label,o.Shape) for o in doc.Objects if hasattr(o,'Shape')]
-        else:
-            shape=Part.read(str(source)); pieces=shape.childShapes() if shape.ShapeType in ('Compound','CompSolid') else [shape]
-            items=[(f'零件 {i+1:02d}',p) for i,p in enumerate(pieces)]
-        meshes = ((name, step_geometry(shape)) for name, shape in items)
+        items, geometry = read_step(source, demo)
+        meshes = ((name, geometry(shape)) for name, shape in items)
     arrays=[]; rows=[]; offset=0
     for title,(vertices,triangles) in meshes:
         if not len(triangles):continue

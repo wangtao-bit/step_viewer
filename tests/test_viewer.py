@@ -40,7 +40,10 @@ class ImportTest(unittest.TestCase):
             model = Path(directory) / 'sample box.stp'
             mesh = model.with_suffix('.mesh')
             generate = ('import sys; import convert; '
-                        'convert.Part.makeBox(10,20,30).exportStep(sys.argv[1])')
+                        'convert.Part.makeBox(10,20,30).exportStep(sys.argv[1])'
+                        ' if convert.Part is not None else '
+                        'convert.cq.exporters.export(convert.cq.Workplane("XY").box(10,20,30, centered=(False,False,False)), '
+                        'sys.argv[1], exportType="STEP")')
             subprocess.run([sys.executable, '-c', generate, str(model)], cwd=ROOT,
                            capture_output=True, check=True, timeout=45)
             subprocess.run([sys.executable, ROOT / 'import_file.py', model, mesh],

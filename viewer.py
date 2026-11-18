@@ -84,7 +84,10 @@ class Viewer(W.QMainWindow):
         if self.proc is not process: return
         try:
             output = bytes(process.readAllStandardOutput()).decode(errors='replace')
-            if code != 0: raise ValueError('文件损坏、格式不受支持，或导入器未能读取几何')
+            if code != 0:
+                details = [line.strip() for line in output.splitlines() if line.strip()]
+                detail = details[-1] if details else f'导入进程退出码 {code}'
+                raise ValueError(detail)
             scene = read_scene(mesh)
             self.apply_scene(scene, path.name); self.file = path
             self.settings.setValue('directory', str(path.parent))

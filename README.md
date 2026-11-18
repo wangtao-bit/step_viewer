@@ -9,6 +9,8 @@
 ```sh
 sudo apt update
 sudo apt install make dpkg python3 python3-pyqt5 python3-vtk9 python3-numpy libqt5svg5 freecad-python3 shared-mime-info
+# 如果不能安装 FreeCAD，也可以使用已安装的 cadquery/OCP 作为 STEP 后端：
+python3 -m pip install --user cadquery
 ```
 
 解压源码包，进入有 `Makefile` 的 `step-viewer` 文件夹，在终端执行：
@@ -33,7 +35,7 @@ make test                        # 自动检查，无需图形桌面
 | 新增工具栏按钮、快捷键和切换状态 | `tools.py` 的 `install_tools(viewer, toolbar)`；现成的「线框」按钮演示了模型替换时如何保留状态 |
 | 改零件列表、拖放、菜单、标准视角 | `viewer.py` 的 `Viewer` 和 `VIEWS` |
 | 改模型配色、材质、网格到 VTK 的映射 | `scene.py` 的 `read_scene()` 和 `PartView` |
-| 改 STEP 读取、零件拆分、三角化精度 | `convert.py` 的 `convert()`；`import_file.py` 负责导入入口及已知文件缓存 |
+| 改 STEP 读取、零件拆分、三角化精度 | `convert.py` 的 `convert()`；优先使用 FreeCAD，缺失时回退到 cadquery/OCP；`import_file.py` 负责导入入口及已知文件缓存 |
 
 例如，要增加一个「后视」方向，可以在 `viewer.py` 的 `VIEWS` 字典中添加 `'后视': ((0, 1, 0), (0, 0, 1))`，重启后它就会出现在视角菜单里。新增工具则从 `tools.py` 入手：`viewer.scene` 包含当前部件，`part.actor` 是 VTK 显示对象；换模型后 `viewer.scene_changed` 会通知工具重新应用显示设置。这里只修改显示状态。要编辑并保存 STEP 几何，需要在 FreeCAD 几何层处理并导出文件，不能只改显示网格。
 
